@@ -21,13 +21,17 @@ function _get_os_proxy --description "Detect proxy settings from the OS (macOS s
 
         switch "$proxy_type_query"
             case no # For no_proxy / bypass domains
-                # Get bypass domains. The output is newline-separated.
-                set -l bypass_domains_output (networksetup -getproxybypassdomains "$network_service" 2>/dev/null)
-                if test $status -eq 0 -a -n "$bypass_domains_output"
-                    # Check for the "no domains" message.
-                    if not string match -q "*There aren't any bypass domains set on*" -- "$bypass_domains_output"
-                        # Convert newline-separated list to comma-separated.
-                        set detected_proxy_value (echo "$bypass_domains_output" | tr '\n' ',' | string trim -c ',')
+                # Get bypass domains. The output from networksetup is newline-separated.
+                # When captured by command substitution `()`, it becomes a Fish list if multiple lines.
+                set -l bypass_domains_list (networksetup -getproxybypassdomains "$network_service" 2>/dev/null)
+
+                # Check if the command was successful and produced output
+                if test $status -eq 0 -a (count $bypass_domains_list) -gt 0
+                    # Check for the "no domains" message, which might be the only element in the list
+                    # Match against the first element if the list is not empty
+                    if not string match -q -- "*There aren't any bypass domains set on*" $bypass_domains_list[1]
+                        # Join the list elements with a comma.
+                        set detected_proxy_value (string join ',' $bypass_domains_list)
                     end
                 end
 
@@ -43,14 +47,22 @@ function _get_os_proxy --description "Detect proxy settings from the OS (macOS s
                 end
 
                 # Fetch proxy info for the determined kind.
+                # Output will likely be a single line, e.g., "Enabled: Yes Server: 127.0.0.1 Port: 6152 Authenticated Proxy Enabled: 0"
                 set -l proxy_info_output (networksetup -get"$networksetup_proxy_kind" "$network_service" 2>/dev/null)
 
                 if test $status -eq 0 -a -n "$proxy_info_output"
-                    # Check if proxy is enabled.
-                    set -l is_enabled (echo "$proxy_info_output" | grep "Enabled: Yes")
-                    if test -n "$is_enabled"
-                        set -l server (echo "$proxy_info_output" | grep "Server:" | string split ' ' -f 2)
-                        set -l port (echo "$proxy_info_output" | grep "Port:" | string split ' ' -f 2)
+                    # Use string match with regex to parse the single-line output.
+                    # -r specifies a regex.
+                    # We look for "Enabled: Yes", then capture Server and Port.
+                    # \S+ matches one or more non-whitespace characters.
+                    set -l matches (string match -r -- 'Enabled: Yes.*Server: (\S+).*Port: (\S+)' "$proxy_info_output")
+
+                    if test $status -eq 0 -a (count $matches) -ge 3
+                        # $matches[1] is the full match
+                        # $matches[2] is the first capture group (Server)
+                        # $matches[3] is the second capture group (Port)
+                        set -l server $matches[2]
+                        set -l port $matches[3]
 
                         if test -n "$server" -a -n "$port" -a "$port" != 0
                             set detected_proxy_value "$server:$port"
