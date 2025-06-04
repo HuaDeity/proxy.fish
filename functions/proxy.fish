@@ -1,58 +1,38 @@
-function proxy -d "Configure proxy settings"
-    # Detect system proxy on macOS
-    __fish_proxy_detect_macos
+function proxy --description "Set system proxies based on configuration"
+    # Create a map (associative array in fish) to store fetched proxy values.
+    # Fish doesn't have true associative arrays like bash.
+    # We'll store them as individual variables or use a list of key=value pairs.
+    set -l proxy_values_map
 
-    # Determine proxy values with precedence: user config > system detected > fallback
-    set -l http_proxy_val ""
-    set -l https_proxy_val ""
-    set -l socks_proxy_val ""
-    set -l no_proxy_val "$FISH_PROXY_NO"
-
-    # HTTP proxy precedence
-    if test -n "$FISH_PROXY_HTTP"
-        set http_proxy_val "$FISH_PROXY_HTTP"
-    else if test -n "$FISH_PROXY_HTTP_DETECTED"
-        set http_proxy_val "$FISH_PROXY_HTTP_DETECTED"
-    end
-
-    # HTTPS proxy precedence
-    if test -n "$FISH_PROXY_HTTPS"
-        set https_proxy_val "$FISH_PROXY_HTTPS"
-    else if test -n "$FISH_PROXY_HTTPS_DETECTED"
-        set https_proxy_val "$FISH_PROXY_HTTPS_DETECTED"
-    end
-
-    # SOCKS proxy precedence
-    if test -n "$FISH_PROXY_SOCKS"
-        set socks_proxy_val "$FISH_PROXY_SOCKS"
-    else if test -n "$FISH_PROXY_SOCKS_DETECTED"
-        set socks_proxy_val "$FISH_PROXY_SOCKS_DETECTED"
-    end
-
-    # Mixed proxy handling
-    if test -n "$FISH_PROXY_MIXED"
-        if test -z "$http_proxy_val"
-            set http_proxy_val "$FISH_PROXY_MIXED"
-        end
-        if test -z "$https_proxy_val"
-            set https_proxy_val "$FISH_PROXY_MIXED"
-        end
-        if test -z "$socks_proxy_val"
-            set socks_proxy_val "$FISH_PROXY_MIXED"
+    # Iterate through defined proxy types and get their values.
+    for type in $FISH_PROXY_TYPES
+        set -l val (_get_proxy $type) # Call helper to get specific proxy value
+        if test -n "$val"
+            # Store as type=value, e.g., http=http://proxy.example.com:8080
+            set -a proxy_values_map "$type=$val"
+        else
+            # Store an empty value if not found, to ensure unsetting later if needed
+            set -a proxy_values_map "$type="
         end
     end
 
-    # Set environment variables
-    __fish_proxy_set_env "$http_proxy_val" "$https_proxy_val" "$socks_proxy_val" "$no_proxy_val"
+    # Apply these values using the registered plugin setters.
+    for plugin_name in $FISH_PROXY_PLUGINS
+        for type_value_pair in $proxy_values_map
+            # Extract type and value
+            set -l current_type (echo "$type_value_pair" | string split -m 1 '=' -f 1)
+            set -l current_value (echo "$type_value_pair" | string split -m 1 '=' -f 2)
 
-    # Configure Git if requested
-    if string match -q "*git*" "$FISH_PROXY_PLUGINS"
-        __fish_proxy_set_git "$http_proxy_val" "$https_proxy_val"
+            set -l setter_func "_set_"$plugin_name"_proxy"
+
+            if functions -q $setter_func
+                # Call the setter function for the plugin and type.
+                # Pass type and its corresponding value.
+                $setter_func "$current_type" "$current_value"
+            else
+                # Optional: Warn if a setter function is expected but not found.
+                # echo "fish-proxy: Warning: Setter function '$setter_func' not found for plugin '$plugin_name'." >&2
+            end
+        end
     end
-
-    echo "Proxy configured:"
-    test -n "$http_proxy_val"; and echo "  HTTP: $http_proxy_val"
-    test -n "$https_proxy_val"; and echo "  HTTPS: $https_proxy_val"
-    test -n "$socks_proxy_val"; and echo "  SOCKS: $socks_proxy_val"
-    test -n "$no_proxy_val"; and echo "  No proxy: $no_proxy_val"
 end

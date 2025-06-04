@@ -1,22 +1,37 @@
-function proxys -d "Show current proxy settings"
-    echo "Environment variables:"
-    echo "  http_proxy: $http_proxy"
-    echo "  https_proxy: $https_proxy"
-    echo "  socks_proxy: $socks_proxy"
-    echo "  all_proxy: $all_proxy"
-    echo "  no_proxy: $no_proxy"
+function proxys --description "Show current proxy settings for all configured plugins"
+    # Iterate through each configured plugin (e.g., shell, git).
+    for plugin_name in $FISH_PROXY_PLUGINS
+        echo -e "\033[1mPlugin: $plugin_name\033[0m" # Bold plugin name
 
-    if command -v git >/dev/null 2>&1
-        echo "Git configuration:"
-        echo "  http.proxy: "(git config --global --get http.proxy 2>/dev/null || echo "not set")
-        echo "  https.proxy: "(git config --global --get https.proxy 2>/dev/null || echo "not set")
+        # Flag to check if any proxy is set for this plugin
+        set -l found_proxy_for_plugin false
+
+        # Iterate through each proxy type (e.g., http, https, all, no).
+        for proxy_type in $FISH_PROXY_TYPES
+            # Construct the name of the getter function for the current plugin and type.
+            # e.g., _get_shell_proxy, _get_git_proxy
+            set -l getter_func "_get_"$plugin_name"_proxy"
+
+            # Check if the getter function exists.
+            if functions -q $getter_func
+                # Call the getter function, passing the proxy type, and capture its output.
+                set -l proxy_value ($getter_func "$proxy_type")
+
+                # If the getter function returned a non-empty value, display it.
+                if test -n "$proxy_value"
+                    echo "  $proxy_type: $proxy_value"
+                    set found_proxy_for_plugin true
+                end
+            else
+                # Optional: Notify if a getter function is missing, though for display,
+                # it might be better to just skip.
+                # echo "fish-proxy: Info: Getter function '$getter_func' not found for plugin '$plugin_name'." >&2
+            end
+        end
+
+        if not $found_proxy_for_plugin
+            echo "  (No proxy settings found for this plugin)"
+        end
+        echo "" # Add a blank line for readability between plugins
     end
-
-    echo "Plugin configuration:"
-    echo "  FISH_PROXY_HTTP: $FISH_PROXY_HTTP"
-    echo "  FISH_PROXY_HTTPS: $FISH_PROXY_HTTPS"
-    echo "  FISH_PROXY_SOCKS: $FISH_PROXY_SOCKS"
-    echo "  FISH_PROXY_MIXED: $FISH_PROXY_MIXED"
-    echo "  FISH_PROXY_NO: $FISH_PROXY_NO"
-    echo "  FISH_PROXY_AUTO: $FISH_PROXY_AUTO"
 end
