@@ -9,11 +9,11 @@ function _set_shell_proxy --description "Set shell environment variables for pro
         # Set both lowercase and uppercase versions of the environment variable.
         set -gx "$base_var_name" "$proxy_value"
         set -gx (string upper "$base_var_name") "$proxy_value"
-        # echo "fish-proxy: (shell) Set $base_var_name to $proxy_value"
+        # echo "proxy.fish: (shell) Set $base_var_name to $proxy_value"
     else
         # If proxy_value is empty, unset the environment variables.
         set -e "$base_var_name"
         set -e (string upper "$base_var_name")
-        # echo "fish-proxy: (shell) Unset $base_var_name"
+        # echo "proxy.fish: (shell) Unset $base_var_name"
     end
 end

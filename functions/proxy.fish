@@ -31,7 +31,7 @@ function proxy --description "Set system proxies based on configuration"
                 $setter_func "$current_type" "$current_value"
             else
                 # Optional: Warn if a setter function is expected but not found.
-                # echo "fish-proxy: Warning: Setter function '$setter_func' not found for plugin '$plugin_name'." >&2
+                # echo "proxy.fish: Warning: Setter function '$setter_func' not found for plugin '$plugin_name'." >&2
             end
         end
     end

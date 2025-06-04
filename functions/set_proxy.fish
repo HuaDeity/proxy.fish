@@ -18,14 +18,14 @@ function set_proxy --description "Set a specific proxy for a given plugin and ty
 
     # Check if the specified plugin is in the configured list of plugins.
     if not contains $plugin_name $FISH_PROXY_PLUGINS
-        echo "fish-proxy: Error: Plugin '$plugin_name' is not configured in FISH_PROXY_PLUGINS." >&2
+        echo "proxy.fish: Error: Plugin '$plugin_name' is not configured in FISH_PROXY_PLUGINS." >&2
         return 1
     end
 
     # Check if the specified proxy type is in the configured list of types.
     # Although individual setters might handle specific types, this provides a general guard.
     if not contains $proxy_type $FISH_PROXY_TYPES
-        echo "fish-proxy: Error: Proxy type '$proxy_type' is not configured in FISH_PROXY_TYPES." >&2
+        echo "proxy.fish: Error: Proxy type '$proxy_type' is not configured in FISH_PROXY_TYPES." >&2
         # Allow proceeding if it's a custom type the plugin might support, but warn.
         # Or, enforce strictly: return 1
     end
@@ -34,9 +34,9 @@ function set_proxy --description "Set a specific proxy for a given plugin and ty
     if functions -q $setter_func
         # Call the setter function with the proxy type and value.
         $setter_func "$proxy_type" "$proxy_value"
-        echo "fish-proxy: Set $proxy_type proxy for $plugin_name to '$proxy_value'."
+        echo "proxy.fish: Set $proxy_type proxy for $plugin_name to '$proxy_value'."
     else
-        echo "fish-proxy: Error: Setter function '$setter_func' not found for plugin '$plugin_name'." >&2
+        echo "proxy.fish: Error: Setter function '$setter_func' not found for plugin '$plugin_name'." >&2
         return 1
     end
 end

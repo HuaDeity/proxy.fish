@@ -15,7 +15,7 @@ function noproxy --description "Unset all configured proxies"
                 $unsetter_func "$proxy_type"
             else
                 # Optional: Warn if an unsetter function is expected but not found.
-                # echo "fish-proxy: Warning: Unsetter function '$unsetter_func' not found for plugin '$plugin_name'." >&2
+                # echo "proxy.fish: Warning: Unsetter function '$unsetter_func' not found for plugin '$plugin_name'." >&2
             end
         end
     end

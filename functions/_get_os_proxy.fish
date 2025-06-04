@@ -15,7 +15,7 @@ function _get_os_proxy --description "Detect proxy settings from the OS (macOS s
         set -l network_service (networksetup -listallnetworkservices | string match -r 'Wi-Fi|AirPort|Ethernet|Display.*' | head -n 1)
 
         if test -z "$network_service"
-            # echo "fish-proxy: (_get_os_proxy) No active network service found on macOS." >&2
+            # echo "proxy.fish: (_get_os_proxy) No active network service found on macOS." >&2
             return 1 # Indicate failure or no proxy found
         end
 
@@ -71,7 +71,7 @@ function _get_os_proxy --description "Detect proxy settings from the OS (macOS s
                 end
         end
     else
-        # echo "fish-proxy: (_get_os_proxy) OS proxy detection not implemented for "(uname -s) >&2
+        # echo "proxy.fish: (_get_os_proxy) OS proxy detection not implemented for "(uname -s) >&2
         return 1 # Indicate not implemented or no proxy found
     end
 

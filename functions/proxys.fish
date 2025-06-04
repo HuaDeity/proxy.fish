@@ -25,7 +25,7 @@ function proxys --description "Show current proxy settings for all configured pl
             else
                 # Optional: Notify if a getter function is missing, though for display,
                 # it might be better to just skip.
-                # echo "fish-proxy: Info: Getter function '$getter_func' not found for plugin '$plugin_name'." >&2
+                # echo "proxy.fish: Info: Getter function '$getter_func' not found for plugin '$plugin_name'." >&2
             end
         end
 

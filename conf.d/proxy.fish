@@ -25,6 +25,6 @@ if test "$FISH_PROXY_AUTO" = yes
     if functions -q proxy
         proxy
     else
-        echo "fish-proxy: Error: 'proxy' function not found. Cannot auto-apply settings." >&2
+        echo "proxy.fish: Error: 'proxy' function not found. Cannot auto-apply settings." >&2
     end
 end
