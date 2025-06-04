@@ -8,7 +8,7 @@ function __fish_proxy_detect_macos
     end
 
     # Get active network service
-    set -l active_service (networksetup -listnetworkserviceorder | grep -A1 "Hardware Port" | head -2 | tail -1 | sed 's/^[^:]*: //')
+    set -l active_service (networksetup -listnetworkserviceorder | grep -E "Wi-Fi|AirPort|Ethernet|Display." | head -1)
 
     if test -z "$active_service"
         return 1
@@ -21,24 +21,24 @@ function __fish_proxy_detect_macos
 
     # Parse and set proxy values
     if echo "$web_proxy" | grep -q "Enabled: Yes"
-        set -l server (echo "$web_proxy" | grep "Server:" | cut -d' ' -f2)
-        set -l port (echo "$web_proxy" | grep "Port:" | cut -d' ' -f2)
+        set -l server (echo "$web_proxy" | sed 's/.*Server: \([^ ]*\).*/\1/')
+        set -l port (echo "$web_proxy" | sed 's/.*Port: \([^ ]*\).*/\1/')
         if test -n "$server" -a -n "$port"
             set -g FISH_PROXY_HTTP_DETECTED "http://$server:$port"
         end
     end
 
     if echo "$secure_proxy" | grep -q "Enabled: Yes"
-        set -l server (echo "$secure_proxy" | grep "Server:" | cut -d' ' -f2)
-        set -l port (echo "$secure_proxy" | grep "Port:" | cut -d' ' -f2)
+        set -l server (echo "$secure_proxy" | sed 's/.*Server: \([^ ]*\).*/\1/')
+        set -l port (echo "$secure_proxy" | sed 's/.*Port: \([^ ]*\).*/\1/')
         if test -n "$server" -a -n "$port"
             set -g FISH_PROXY_HTTPS_DETECTED "http://$server:$port"
         end
     end
 
     if echo "$socks_proxy" | grep -q "Enabled: Yes"
-        set -l server (echo "$socks_proxy" | grep "Server:" | cut -d' ' -f2)
-        set -l port (echo "$socks_proxy" | grep "Port:" | cut -d' ' -f2)
+        set -l server (echo "$socks_proxy" | sed 's/.*Server: \([^ ]*\).*/\1/')
+        set -l port (echo "$socks_proxy" | sed 's/.*Port: \([^ ]*\).*/\1/')
         if test -n "$server" -a -n "$port"
             set -g FISH_PROXY_SOCKS_DETECTED "socks5://$server:$port"
         end
