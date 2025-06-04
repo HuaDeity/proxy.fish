@@ -8,7 +8,7 @@ function __fish_proxy_detect_macos
     end
 
     # Get active network service
-    set -l active_service (networksetup -listnetworkserviceorder | grep -E "Wi-Fi|AirPort|Ethernet|Display." | head -1)
+    set -l active_service (networksetup -listallnetworkservices | grep -E "Wi-Fi|AirPort|Ethernet|Display." | head -1)
 
     if test -z "$active_service"
         return 1
