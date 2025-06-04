@@ -8,9 +8,9 @@ function _get_shell_proxy --description "Get current shell proxy setting"
 
     # Check lowercase first, then uppercase.
     if set -q $lower_var
-        set value_to_return (status --get-variable $lower_var)
+        set value_to_return $$lower_var
     else if set -q $upper_var
-        set value_to_return (status --get-variable $upper_var)
+        set value_to_return $$upper_var
     end
 
     echo -n "$value_to_return"
