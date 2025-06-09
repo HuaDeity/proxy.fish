@@ -34,7 +34,7 @@ function _set_nix_proxy --description "Set Nix proxy"
 
     else if test (uname) = Linux
         # SAFER Linux implementation
-        set -l override_dir "/etc/systemd/system/nix-daemon.service.d"
+        set -l override_dir "/run/systemd/system/nix-daemon.service.d"
         set -l proxy_conf_file "$override_dir/$proxy_type.conf"
 
         if test -n "$proxy_value"

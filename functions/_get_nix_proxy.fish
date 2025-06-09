@@ -14,7 +14,7 @@ function _get_nix_proxy --description "Get Nix proxy"
             set value_to_return (plutil -extract EnvironmentVariables.$upper_var raw $plist_file 2>/dev/null)
         end
     else if test (uname) = Linux
-        set -l override_dir "/etc/systemd/system/nix-daemon.service.d"
+        set -l override_dir "/run/systemd/system/nix-daemon.service.d"
         set -l proxy_conf_file "$override_dir/$proxy_type.conf"
 
         if test -e $proxy_conf_file
